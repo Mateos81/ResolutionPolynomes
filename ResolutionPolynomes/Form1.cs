@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using System.Text.RegularExpressions;
+
 namespace ResolutionPolynomes
 {
     /// <summary>
@@ -22,11 +24,20 @@ namespace ResolutionPolynomes
             InitializeComponent();
 
             // Tests fonctions
-            float a = 1.0f, b = 2.0f, c = 3.0f;
+            float a = 1.0f, b = 2.0f, c = 1.0f, d = 4.0f;
 
-            string res = Outils.SecondDegre(a, b, c);
+            string res = Outils.TroisiemeDegre(a, b, c, d);
 
-            txtb_res.Text = res;
+            //txtb_res.Text = res;
+        }
+
+        private static bool verifParams()
+        {
+            string regex =  "[0-9]*[\\.[0-9]+]?";
+            Regex reg = new Regex(regex);
+            //MatchCollection matches = reg.Matches();
+
+            return true;
         }
     }
 }
