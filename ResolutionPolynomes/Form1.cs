@@ -26,9 +26,14 @@ namespace ResolutionPolynomes
             // Tests fonctions
             float a = 1.0f, b = 2.0f, c = 1.0f, d = 4.0f;
 
-            string res = Outils.TroisiemeDegre(a, b, c, d);
+            List<System.Numerics.Complex> res = Outils.TroisiemeDegre(a, b, c, d);
 
-            //txtb_res.Text = res;
+            txtb_res.Text = Outils.ToString(res.ToArray()[0]);
+
+            System.Numerics.Complex temp =
+                Outils.ToComplex(
+                    Outils.ToString(
+                        new System.Numerics.Complex(0, -1)));
         }
 
         private static bool verifParams()

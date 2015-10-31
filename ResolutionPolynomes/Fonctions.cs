@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 
 namespace ResolutionPolynomes
@@ -14,9 +15,9 @@ namespace ResolutionPolynomes
         /// <param name="a">Facteur de degré 1.</param>
         /// <param name="b">Constante.</param>
         /// <returns>La racine du polynôme.</returns>
-        private static string PremierDegre(float a, float b)
+        private static float PremierDegre(float a, float b)
         {
-            return a == .0 ? b.ToString() : (-b / a).ToString();
+            return a == .0 ? b : -b / a;
         }
 
         /// <summary>
@@ -25,36 +26,37 @@ namespace ResolutionPolynomes
         /// <param name="a">Facteur de degré 2.</param>
         /// <param name="b">Facteur de degré 1.</param>
         /// <param name="c">Constante.</param>
-        /// <returns>Les racines sous forme de String.</returns>
-        private static string SecondDegre(float a, float b, float c)
+        /// <returns>Les racines sous forme de liste de Complex.</returns>
+        private static List<Complex> SecondDegre(float a, float b, float c)
         {
-            // Premier degré (a = 0)
-            if (a == 0.0)
-            {
-                return PremierDegre(b, c);
-            }
+            List<Complex> racines = new List<Complex>();
 
             float delta = b * b - 4 * a * c;
-
-            // Une racine réelle simple
-            if (delta == 0.0)
+            
+            if (a == 0.0)
             {
-                return (-b / (2 * a)).ToString();
+                // Premier degré
+                racines.Add(new Complex(PremierDegre(b, c), 0));
+            }
+            else if (delta == 0.0)
+            {
+                // Une racine réelle double
+                racines.Add(new Complex(-b / (2 * a), 0));
+            }
+            else if (delta > 0.0)
+            {
+                // Deux racines réelles simples
+                racines.Add(new Complex((-b + Math.Sqrt(delta)) / (2.0 * a), 0));
+                racines.Add(new Complex((-b - Math.Sqrt(delta)) / (2.0 * a), 0));
+            }
+            else
+            {
+                // Deux racines complexes conjuguées
+                racines.Add(new Complex(-b / (2 * a), Math.Sqrt(-delta) / (2.0 * a)));
+                racines.Add(new Complex(-b / (2 * a), -Math.Sqrt(-delta) / (2.0 * a)));
             }
 
-            // Une racine réelle double
-            if (delta > 0.0)
-            {
-                return (-b + Math.Sqrt(delta)) / (2.0 * a)
-                    + " ; " +
-                    (-b - Math.Sqrt(delta)) / (2.0 * a);
-            }
-
-            // Deux racines complexes conjuguées
-            Complex racine1 = new Complex(-b / (2 * a), Math.Sqrt(-delta) / (2.0 * a));
-            Complex racine2 = new Complex(-b / (2 * a), -Math.Sqrt(-delta) / (2.0 * a));
-
-            return "x1 = " + ToString(racine1) + "\r\nx2 = " + ToString(racine2);
+            return racines;
         }
 
         /// <summary>
@@ -64,8 +66,8 @@ namespace ResolutionPolynomes
         /// <param name="b">Facteur de degré 2.</param>
         /// <param name="c">Facteur de degré 1.</param>
         /// <param name="d">Constante.</param>
-        /// <returns>Les racines sous forme de String.</returns>
-        public static string TroisiemeDegre(float a, float b, float c, float d)
+        /// <returns>Les racines sous forme de liste de Complex.</returns>
+        public static List<Complex> TroisiemeDegre(float a, float b, float c, float d)
         {
             // Cas du second degré
             if (a == 0)
@@ -73,86 +75,115 @@ namespace ResolutionPolynomes
                 return SecondDegre(b, c, d);
             }
 
-            Complex j = new Complex(-1 / 2, Math.Sqrt(3)/2);
             float delta, p, q;
             p = c / a - b * b / (3 * a * a);
             q = d / a - b * c / (3 * a * a) + 2 * (float)Math.Pow(b, 3) / (27 * (float)Math.Pow(a, 3));
             delta = q * q + 4 * (float)Math.Pow(p, 3) / 27;
 
+            List<Complex> racines = new List<Complex>();
+
             // Si delta égal à 0, 2 racines réelles
             if (delta == 0)
             {
-                return (3 * q / p - b / (3 * a)) + " ; " + (-3 * q / (2 * p) - b / (3 * a));
+                racines.Add(new Complex(3 * q / p - b / (3 * a), 0));
+                racines.Add(new Complex(-3 * q / (2 * p) - b / (3 * a), 0));
+                
+                return racines;
             }
 
-            // Si delta positif, 3 racines complexes en fonction de j, sachant que j=exp(2*i*pi()/3)
+            // j constante complexe pour Cardan
+            // Sachant que j = exp(2*i*pi() / 3)
+            Complex j = new Complex(-1.0 / 2.0, Math.Sqrt(3) / 2);
+            Complex jCarre = Complex.Pow(j, new Complex(2, 0));
+
+            // Si delta positif, 3 racines complexes en fonction de j
             if (delta > 0)
             {
-                float Membre1, Membre2, Membre3;
+                float membre1, membre2, membre3;
 
-                Membre1 = (float)Math.Pow(-q + Math.Sqrt(delta) / 2, 1 / 3);
-                Membre2 = (float)Math.Pow(-q - Math.Sqrt(delta) / 2, 1 / 3);
-                Membre3 = (-b / (3 * a));
+                membre1 = (float)Math.Pow(-q + Math.Sqrt(delta) / 2, 1 / 3);
+                membre2 = (float)Math.Pow(-q - Math.Sqrt(delta) / 2, 1 / 3);
+                membre3 = (-b / (3 * a));
 
-                return Membre1 + Membre2 + Membre3 + "\r\n"
-                    + j * Membre1 + j * j + Membre2 + Membre3 + "\r\n "
-                    + j*j * Membre1 + j * Membre2 + Membre3;
+                racines.Add(new Complex(membre1 - membre2 + membre3, 0));
+                
+                racines.Add(
+                    new Complex(
+                        membre3 - ((Complex)(jCarre * membre2)).Real,
+                        ((Complex)(j * membre1 - jCarre * membre2)).Imaginary));
+
+                racines.Add(
+                    new Complex(
+                        membre3 + ((Complex)(jCarre * membre1)).Real,
+                        ((Complex)(-j * membre2 + jCarre * membre1)).Imaginary));
+
+                return racines;
             }
 
             // Si delta négatif
             if (delta < 0)
             {
-                string RacineTroisiemePositive, RacineTroisiemeNegative;
+                Complex membreDeltaPositif = new Complex(-q / 2, Math.Sqrt(-delta) / 2);
+                Complex membreDeltaNegatif = new Complex(-q / 2, -Math.Sqrt(-delta) / 2);
 
-                RacineTroisiemePositive =
-                    "PUISSANCE((" + -q + " + i*RACINE(ABS(" + delta + ")))/2, 1/3)";
+                Complex racineTroisiemePositive = new Complex();
+                Complex racineTroisiemeNegative = new Complex();
 
-                RacineTroisiemeNegative =
-                    "PUISSANCE((" + -q + " - i*RACINE(ABS(" + delta + ")))/2, 1/3)";
+                racineTroisiemePositive = Complex.Pow(membreDeltaPositif, 1 / 3);
+                racineTroisiemeNegative = Complex.Pow(membreDeltaNegatif, 1 / 3);
 
-                string Membre1, Membre2, Membre3;
-                Membre1 =
-                    RacineTroisiemePositive +
-                    " - " +
-                    RacineTroisiemeNegative +
-                    -b/(3*a);
+                Complex membre1, membre2, membre3;
+                membre1 =
+                    racineTroisiemePositive - racineTroisiemeNegative - b / (3*a);
 
-                Membre2 =
-                    "j * " + RacineTroisiemeNegative + " - " +
-                    "j² * " + RacineTroisiemeNegative +
-                    -b / (3 * a);
+                membre2 =
+                    j * racineTroisiemePositive - j * j * racineTroisiemeNegative - b / (3 * a);
 
-                Membre3 = 
-                    "j² * " + RacineTroisiemePositive + " - " +
-                    "j * " + RacineTroisiemeNegative +
-                    -b / (3 * a);
-                
-                return Membre1 + " ; " + Membre2 + " ; " + Membre3;
+                membre3 = 
+                    j*j * racineTroisiemePositive - j * racineTroisiemeNegative - b / (3 * a);
+
+                return racines;
             }
 
+            return racines;
+        }
+
+        /// <summary>
+        /// Description textuelle d'un objet Complex.
+        /// </summary>
+        /// <param name="complex">Objet à décrire.</param>
+        /// <returns>La description du Complex.</returns>
+        public static string ToString(Complex complex)
+        {
+            // TODO Gérer le cas où l'un ou l'autre est nul
+            // a + ib
+            // a
+            // ib
+            return complex.Real + " + (" + complex.Imaginary + ")i";
+        }
+
+        /// <summary>
+        /// Conversion d'une string descriptive en objet Complex.
+        /// </summary>
+        /// <param name="complex">String descriptive à convertir.</param>
+        /// <returns>Un objet Complex suivant la description donnée.</returns>
+        public static Complex ToComplex(string complex)
+        {
+            // TODO Cf. TODO ToString
+            double reel = double.Parse(complex.Split('+')[0]);
+            double complexe = double.Parse(complex.Split('(', ')')[1]);
+
+            return new Complex(reel, complexe);
+        }
+
+        /// <summary>
+        /// Vérification de calcul.
+        /// </summary>
+        /// <param name="toTest">Objet Complex à tester.</param>
+        /// <returns>Une string représentant une égalité.</returns>
+        public static string Verif(Complex toTest)
+        {
             return string.Empty;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="complex"></param>
-        /// <returns></returns>
-        private static string ToString(Complex complex)
-        {
-            return complex.Real + (complex.Imaginary < 0 ? " " : " + ") + complex.Imaginary + "i";    
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="complex"></param>
-        /// <returns></returns>
-        private static Complex ToComplex(string complex)
-        {
-            string reel = complex.Split('+')[0];
-
-            return new Complex();
         }
     }
 }
