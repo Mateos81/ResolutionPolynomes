@@ -155,10 +155,24 @@ namespace ResolutionPolynomes
         /// <returns>La description du Complex.</returns>
         public static string ToString(Complex complex)
         {
-            // TODO Gérer le cas où l'un ou l'autre est nul
-            // a + ib
-            // a
-            // ib
+            // Les deux parties sont nulles
+            if (complex.Real == 0 && complex.Imaginary == 0)
+            {
+                return "0";
+            }
+
+            // Une des deux est nulle
+            if (complex.Real == 0)
+            {
+                return complex.Imaginary + "i";
+            }
+            
+            if (complex.Imaginary == 0)
+            {
+                return complex.Real.ToString();
+            }
+            
+            // Les deux parties sont non-nulles
             return complex.Real + " + (" + complex.Imaginary + ")i";
         }
 
@@ -169,11 +183,28 @@ namespace ResolutionPolynomes
         /// <returns>Un objet Complex suivant la description donnée.</returns>
         public static Complex ToComplex(string complex)
         {
-            // TODO Cf. TODO ToString
-            double reel = double.Parse(complex.Split('+')[0]);
-            double complexe = double.Parse(complex.Split('(', ')')[1]);
+            double reel = 0.0;
+            double imaginaire = 0.0;
+            
+            // Cas où il n'y a pas de partie imaginaire
+            if (!complex.Contains("i"))
+            {
+                reel = double.Parse(complex);
+            }
+            else
+            {
+                // Cas où il n'y a pas de partie réelle : i mais sans paranthèses
+                if (!complex.Contains("("))
+                    imaginaire = double.Parse(complex.Substring(0, complex.Length - 1));
+                else
+                {
+                    reel = double.Parse(complex.Split('+')[0]);
+                    imaginaire = double.Parse(complex.Split('(', ')')[1]);
+                }
 
-            return new Complex(reel, complexe);
+            }            
+
+            return new Complex(reel, imaginaire);
         }
 
         /// <summary>
@@ -181,9 +212,9 @@ namespace ResolutionPolynomes
         /// </summary>
         /// <param name="toTest">Objet Complex à tester.</param>
         /// <returns>Une string représentant une égalité.</returns>
-        public static string Verif(Complex toTest)
+        public static string Verif(double a, double b, double c, double d, Complex toTest)
         {
-            return string.Empty;
+            return (toTest * a).ToString();
         }
     }
 }
