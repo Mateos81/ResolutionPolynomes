@@ -78,7 +78,7 @@ namespace ResolutionPolynomes
             float delta, p, q;
             p = c / a - b * b / (3 * a * a);
             q = d / a - b * c / (3 * a * a) + 2 * (float)Math.Pow(b, 3) / (27 * (float)Math.Pow(a, 3));
-            delta = q * q + 4 * (float)Math.Pow(p, 3) / 27;
+            delta = -q * q * 27 - 4 * (float)Math.Pow(p, 3);
 
             List<Complex> racines = new List<Complex>();
 
@@ -99,23 +99,19 @@ namespace ResolutionPolynomes
             // Si delta positif, 3 racines complexes en fonction de j
             if (delta > 0)
             {
-                float membre1, membre2, membre3;
+                Complex membreU = new Complex(-q / 2.0, Math.Sqrt(delta / 27.0) / 2.0);
 
-                membre1 = (float)Math.Pow(-q + Math.Sqrt(delta) / 2, 1 / 3);
-                membre2 = (float)Math.Pow(-q - Math.Sqrt(delta) / 2, 1 / 3);
-                membre3 = (-b / (3 * a));
+                Complex racineTroisiemeU = racineTroisieme(membreU);
 
-                racines.Add(new Complex(membre1 - membre2 + membre3, 0));
+                Complex membre1, membre2, membre3;
                 
-                racines.Add(
-                    new Complex(
-                        membre3 - ((Complex)(jCarre * membre2)).Real,
-                        ((Complex)(j * membre1 - jCarre * membre2)).Imaginary));
+                membre1 = racineTroisiemeU + Complex.Conjugate(racineTroisiemeU);
+                membre2 = j * racineTroisiemeU + Complex.Conjugate(j * racineTroisiemeU);
+                membre3 = j * j * racineTroisiemeU + Complex.Conjugate(j * j * racineTroisiemeU);
 
-                racines.Add(
-                    new Complex(
-                        membre3 + ((Complex)(jCarre * membre1)).Real,
-                        ((Complex)(-j * membre2 + jCarre * membre1)).Imaginary));
+                racines.Add(membre1 - b / (3 * a));
+                racines.Add(membre2 - b / (3 * a));
+                racines.Add(membre3 - b / (3 * a));
 
                 return racines;
             }
@@ -123,24 +119,25 @@ namespace ResolutionPolynomes
             // Si delta négatif
             if (delta < 0)
             {
-                Complex membreDeltaPositif = new Complex(-q / 2, Math.Sqrt(-delta) / 2);
-                Complex membreDeltaNegatif = new Complex(-q / 2, -Math.Sqrt(-delta) / 2);
+                Complex membreDeltaPositif = new Complex((-q + Math.Sqrt(-delta / 27.0)) / 2.0, 0.0);
+                Complex membreDeltaNegatif = new Complex((-q - Math.Sqrt(-delta / 27.0)) / 2.0, 0.0);
 
-                Complex racineTroisiemePositive = new Complex();
-                Complex racineTroisiemeNegative = new Complex();
-
-                racineTroisiemePositive = Complex.Pow(membreDeltaPositif, 1 / 3);
-                racineTroisiemeNegative = Complex.Pow(membreDeltaNegatif, 1 / 3);
+                Complex racineTroisiemePositive = racineTroisieme(membreDeltaPositif);
+                Complex racineTroisiemeNegative = racineTroisieme(membreDeltaNegatif);
 
                 Complex membre1, membre2, membre3;
                 membre1 =
-                    racineTroisiemePositive - racineTroisiemeNegative - b / (3*a);
+                    racineTroisiemePositive + racineTroisiemeNegative - b / (3.0 * a);
 
                 membre2 =
-                    j * racineTroisiemePositive - j * j * racineTroisiemeNegative - b / (3 * a);
+                    j * racineTroisiemePositive + Complex.Conjugate(j) * racineTroisiemeNegative - b / (3.0 * a);
 
                 membre3 = 
-                    j*j * racineTroisiemePositive - j * racineTroisiemeNegative - b / (3 * a);
+                    j * j * racineTroisiemePositive + Complex.Conjugate(j * j) * racineTroisiemeNegative - b / (3.0 * a);
+
+                racines.Add(membre1);
+                racines.Add(membre2);
+                racines.Add(membre3);
 
                 return racines;
             }
@@ -155,25 +152,20 @@ namespace ResolutionPolynomes
         /// <returns>La description du Complex.</returns>
         public static string ToString(Complex complex)
         {
-            // Les deux parties sont nulles
-            if (complex.Real == 0 && complex.Imaginary == 0)
-            {
-                return "0";
-            }
-
-            // Une des deux est nulle
             if (complex.Real == 0)
             {
-                return complex.Imaginary + "i";
+                if (complex.Imaginary == 0)
+                    return complex.Real.ToString("0.0000");
+                else
+                    return complex.Imaginary.ToString("0.0000") + "i";
             }
-            
-            if (complex.Imaginary == 0)
+            else
             {
-                return complex.Real.ToString();
+            if (complex.Imaginary == 0)
+                    return complex.Real.ToString("0.0000");
+                else
+                    return complex.Real.ToString("0.0000") + " + (" + complex.Imaginary.ToString("0.0000") + ")i";
             }
-            
-            // Les deux parties sont non-nulles
-            return complex.Real + " + (" + complex.Imaginary + ")i";
         }
 
         /// <summary>
@@ -201,7 +193,6 @@ namespace ResolutionPolynomes
                     reel = double.Parse(complex.Split('+')[0]);
                     imaginaire = double.Parse(complex.Split('(', ')')[1]);
                 }
-
             }            
 
             return new Complex(reel, imaginaire);
@@ -210,11 +201,31 @@ namespace ResolutionPolynomes
         /// <summary>
         /// Vérification de calcul.
         /// </summary>
+        /// <param name="a">Nombre facteur de degré 3.</param>
+        /// <param name="b">Nombre facteur de degré 2.</param>
+        /// <param name="c">Nombre facteur de degré 1.</param>
+        /// <param name="d">Constante.</param>
         /// <param name="toTest">Objet Complex à tester.</param>
-        /// <returns>Une string représentant une égalité.</returns>
+        /// <returns>Une string représentant le calcul résultat.</returns>
         public static string Verif(double a, double b, double c, double d, Complex toTest)
         {
-            return (toTest * a).ToString();
+            Complex result = Complex.Pow(toTest, 3) * a + Complex.Pow(toTest, 2) * b + toTest * c + d;
+            if (result.Real < Math.Pow(10, -5) && result.Imaginary < Math.Pow(10, -5))
+            {
+                result = 0.0;
+            }
+
+            return a + "* (" + ToString(toTest) + ")³ + " + b + "* (" + ToString(toTest) + ")² + " + c + "* (" + ToString(toTest) + ") + " + d + " = " + ToString(result);
+        }
+
+        /// <summary>
+        /// Racine troisième d'un nombre complexe.
+        /// </summary>
+        /// <param name="complex">Nombre complexe.</param>
+        /// <returns>La racine troisième du complexe passé en paramètre.</returns>
+        private static Complex racineTroisieme(Complex complex)
+        {
+            return complex.Real >= 0 ? Complex.Pow(complex, 1 / 3.0) : -Complex.Pow(-complex, 1 / 3.0);
         }
     }
 }

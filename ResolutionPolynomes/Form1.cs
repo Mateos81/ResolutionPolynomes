@@ -1,13 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
-
-using System.Text.RegularExpressions;
 
 namespace ResolutionPolynomes
 {
@@ -22,27 +15,43 @@ namespace ResolutionPolynomes
         public Form1()
         {
             InitializeComponent();
-
-            // Tests fonctions
-            float a = 1.0f, b = 2.0f, c = 1.0f, d = 4.0f;
-
-            List<System.Numerics.Complex> res = Outils.TroisiemeDegre(a, b, c, d);
-
-            txtb_res.Text = Outils.ToString(res.ToArray()[0]);
-
-            System.Numerics.Complex temp =
-                Outils.ToComplex(
-                    Outils.ToString(
-                        new System.Numerics.Complex(0, -1)));
         }
 
-        private static bool verifParams()
+        /// <summary>
+        /// Lancement du calcul.
+        /// </summary>
+        /// <param name="sender">Objet.</param>
+        /// <param name="e">EventArgs.</param>
+        private void btn_calcul_Click(object sender, EventArgs e)
         {
-            string regex =  "[0-9]*[\\.[0-9]+]?";
-            Regex reg = new Regex(regex);
-            //MatchCollection matches = reg.Matches();
+            txtb_res.Text = null;
+            txtb_verif.Text = null;
+            try
+            {
+                float param1 = !string.IsNullOrEmpty(txtb_deg3.Text) ? float.Parse(txtb_deg3.Text) : 0.0f;
+                float param2 = !string.IsNullOrEmpty(txtb_deg2.Text) ? float.Parse(txtb_deg2.Text) : 0.0f;
+                float param3 = !string.IsNullOrEmpty(txtb_deg1.Text) ? float.Parse(txtb_deg1.Text) : 0.0f;
+                float param4 = !string.IsNullOrEmpty(txtb_deg0.Text) ? float.Parse(txtb_deg0.Text) : 0.0f;
 
-            return true;
+                if (param1 == 0.0 && param2 == 0.0 && param3 == 0.0)
+                {
+                    txtb_res.Text = param4 == 0.0 ? "Il y a une infinité de solutions" : "Impossible";
+                    return;
+                }
+
+                List<System.Numerics.Complex> res = Outils.TroisiemeDegre(param1, param2, param3, param4);
+                int i = 0;
+                foreach (System.Numerics.Complex c in res)
+                {
+                    txtb_res.Text += "x" + i + " = " + Outils.ToString(c) + "\r\n\r\n";
+                    txtb_verif.Text += Outils.Verif(param1, param2, param3, param4, c) + "\r\n\r\n";
+                    i++;
+                }
+            }
+            catch
+            {
+                MessageBox.Show("Paramètre(s) invalide(s).");
+            }
         }
     }
 }
